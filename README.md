@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## AI Elements — Next.js AI chat UI
 
-## Getting Started
+This is a modern chat UI built with Next.js App Router and the AI SDK. It streams model responses with reasoning and sources, supports web search, and lets users switch models.
 
-First, run the development server:
+### Features
+- **Streaming responses** with the AI SDK `streamText`
+- **Reasoning and sources** panes (toggleable in the UI)
+- **Model picker** (e.g. `openai/gpt-4o`, `deepseek/deepseek-r1`)
+- **Web search** toggle that routes to `perplexity/sonar`
+- **Dark/light theme** with system preference
 
+### Tech stack
+- **Next.js 15** (App Router)
+- **React 19**
+- **AI SDK 5** (`ai`, `@ai-sdk/react`)
+- **Radix UI** + small UI primitives in `components/ui`
+
+---
+
+## Quickstart
+
+### 1) Prerequisites
+- Node.js 18.17+ (Node 20+ recommended)
+- npm, yarn, pnpm, or bun
+
+### 2) Install dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+# or: npm install / yarn / bun install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3) Configure environment variables
+Create a local env file and set the keys you plan to use.
+```bash
+cp .env.example .env.local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can run via an AI Gateway (recommended) or connect directly to providers.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### Option A: AI Gateway (recommended)
+Set these variables:
 
-## Learn More
+```bash
+AI_GATEWAY_URL=    # e.g. your AI Gateway base URL
+AI_GATEWAY_API_KEY=
+```
 
-To learn more about Next.js, take a look at the following resources:
+Notes:
+- The app uses model IDs like `openai/gpt-4o`, `deepseek/deepseek-r1`, and `perplexity/sonar`.
+- Ensure your gateway is configured to route these model IDs to the corresponding providers.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+#### Option B: Direct provider keys
+Set the keys for the models you intend to use:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+OPENAI_API_KEY=
+DEEPSEEK_API_KEY=
+PERPLEXITY_API_KEY=
+# Optional advanced overrides if needed:
+# OPENAI_BASE_URL=
+# DEEPSEEK_API_BASE=
+# PERPLEXITY_BASE_URL=
+```
 
-## Deploy on Vercel
+Security tips:
+- Do not prefix server-only secrets with `NEXT_PUBLIC_`.
+- Keep real secrets out of git. Use `.env.local` for local dev; it’s gitignored.
+- If any secret was committed previously (e.g. in `.env`), rotate it.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 4) Start the app
+```bash
+pnpm dev
+# or: npm run dev / yarn dev / bun dev
+```
+Open `http://localhost:3000`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Scripts
+```bash
+pnpm dev     # start dev server (Turbopack)
+pnpm build   # production build
+pnpm start   # start production server
+pnpm lint    # run ESLint
+```
+
+---
+
+## How it works
+- **Client**: `components/ai-chat.tsx` uses `useChat` from `@ai-sdk/react`. It lets users select a model and toggle web search. Submissions are sent to the API with `{ model, webSearch }`.
+- **Server**: `app/api/chat/route.ts` calls `streamText` and streams tokens back. When web search is on, it uses the `perplexity/sonar` model; otherwise it uses the selected model. The response includes reasoning and sources, which the UI renders.
+
+You can add more models by editing the `models` array in `components/ai-chat.tsx`.
+
+---
+
+## Deployment
+- Deploy on Vercel or any Node host. Ensure the same env vars are set in the hosting environment.
+
+---
+
+## Troubleshooting
+- 401 or 403 errors: check that your `AI_GATEWAY_API_KEY` or provider API keys are set and valid.
+- Model not found: ensure the gateway or provider supports the model ID you selected.
+- No streaming: verify your host supports streaming responses and that the route isn’t buffered by a proxy.
+
+---
+
+## License
+MIT (or your preferred license)
+
